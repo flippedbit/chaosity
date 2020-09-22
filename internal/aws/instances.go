@@ -25,6 +25,12 @@ func GetInstancesBySubnet(svc *ec2.EC2, s *string) ([]*ec2.Instance, error) {
 						aws.String(subnet),
 					},
 				},
+				{
+					Name: aws.String("instance-state-name"),
+					Values: []string{
+						aws.String("running"),
+					},
+				},
 			},
 		}
 		// AWS describe on all instances with AWS error handling

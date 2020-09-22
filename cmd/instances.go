@@ -27,6 +27,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var rebootFlag bool
+var denyFlag bool
+
 // instancesCmd represents the instances command
 var instancesCmd = &cobra.Command{
 	Use:   "instances",
@@ -38,6 +41,7 @@ and they will be separated out. After the duration period, provided by the --dur
 all previous security groups are re-applied to each instance. Finally, the empty secuirty
 group is deleted.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		doSomething := false
 		sess := session.Must(
 			session.NewSession(&aws.Config{
 				Region:      aws.String(options.region),
@@ -47,27 +51,38 @@ group is deleted.`,
 		svc := ec2.New(sess)
 
 		var instances []*ec2.Instance
+		var denySG string
 
 		if options.subnets != "" {
 			instances, _ = internalAWS.GetInstancesBySubnet(svc, &options.subnets)
 		}
-		denySG, err := internalAWS.GenerateDenySecurityGroup(svc, &options.vpcID)
-		if err != nil {
-			fmt.Println(err)
-			return
+		if denyFlag {
+			doSomething = true
+			denySG, err := internalAWS.GenerateDenySecurityGroup(svc, &options.vpcID)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			fmt.Println("Created SecurityGroup ", denySG)
+			if err := internalAWS.ApplyChaosSecurityGroupToInstances(svc, instances, denySG); err != nil {
+				fmt.Println(err)
+				return
+			}
 		}
-		fmt.Println("Created SecurityGroup ", denySG)
-		if err := internalAWS.ApplyChaosSecurityGroupToInstances(svc, instances, denySG); err != nil {
-			fmt.Println(err)
-			return
+		if doSomething {
+			fmt.Println("Chaos! Waiting for ", options.duration, " seconds...")
+			time.Sleep(time.Duration(options.duration) * time.Second)
+		} else {
+			fmt.Println("Chaos the chaos! Nothing to do so not going to wait...")
 		}
-		time.Sleep(time.Duration(options.duration) * time.Second)
-		if err := internalAWS.RevertChaosSecurityGroupOnInstances(svc, instances); err != nil {
-			fmt.Println(err)
-			return
+		if denyFlag {
+			if err := internalAWS.RevertChaosSecurityGroupOnInstances(svc, instances); err != nil {
+				fmt.Println(err)
+				return
+			}
+			fmt.Println("Deleting SecurityGroup ", denySG)
+			internalAWS.DeleteDenySecurityGroup(svc, denySG)
 		}
-		fmt.Println("Deleting SecurityGroup ", denySG)
-		internalAWS.DeleteDenySecurityGroup(svc, denySG)
 	},
 }
 
@@ -83,6 +98,8 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// instancesCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	instancesCmd.Flags().BoolVarP(&rebootFlag, "reboot", "r", false, "Reboot selected instances from subnets or availability-zone.")
+	instancesCmd.Flags().BoolVarP(&denyFlag, "deny", "d", false, "")
 	instancesCmd.MarkFlagRequired("profile")
 	instancesCmd.MarkFlagRequired("vpc-id")
 	instancesCmd.MarkFlagRequired("region")

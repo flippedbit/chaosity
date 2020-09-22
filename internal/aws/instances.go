@@ -97,3 +97,29 @@ func RevertChaosSecurityGroupOnInstances(svc *ec2.EC2, instances []*ec2.Instance
 	}
 	return nil
 }
+
+func RebootInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
+	var iList []*string
+	for _, i := range instances {
+		fmt.Println("Rebooting instance ", *i.InstanceId)
+		iList = append(iList, i.InstanceId)
+	}
+
+	input := &ec2.RebootInstancesInput{
+		InstanceIds: iList,
+	}
+	_, err := svc.RebootInstances(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			default:
+				fmt.Println(aerr)
+				return aerr
+			}
+		} else {
+			fmt.Println(err)
+			return err
+		}
+	}
+	return nil
+}

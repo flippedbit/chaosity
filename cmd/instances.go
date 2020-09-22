@@ -69,6 +69,10 @@ group is deleted.`,
 				return
 			}
 		}
+		if rebootFlag {
+			//doSomething = true
+			internalAWS.RebootInstances(svc, instances)
+		}
 		if doSomething {
 			fmt.Println("Chaos! Waiting for ", options.duration, " seconds...")
 			time.Sleep(time.Duration(options.duration) * time.Second)

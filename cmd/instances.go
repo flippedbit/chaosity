@@ -103,7 +103,7 @@ func init() {
 	// is called directly, e.g.:
 	// instancesCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	instancesCmd.Flags().BoolVarP(&rebootFlag, "reboot", "r", false, "Reboot selected instances from subnets or availability-zone.")
-	instancesCmd.Flags().BoolVarP(&denyFlag, "deny", "d", false, "")
+	instancesCmd.Flags().BoolVarP(&denyFlag, "deny", "d", false, "Apply deny security group to instances")
 	instancesCmd.MarkFlagRequired("profile")
 	instancesCmd.MarkFlagRequired("vpc-id")
 	instancesCmd.MarkFlagRequired("region")

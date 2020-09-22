@@ -7,7 +7,23 @@ in the future.
 
 ### Usage
 ```
-./chaosity aws instances --profile <profile> --regions <region> --vpc-id <vpc> --subnets subnet-1,subnet-2
+Usage:
+  chaosity aws instances [flags]
+
+Flags:
+  -d, --deny     Apply deny security group to instances
+  -h, --help     help for instances
+  -r, --reboot   Reboot selected instances from subnets or availability-zone.
+
+Global Flags:
+  -a, --author string              author name for copyright attribution (default "Michael Straughan")
+      --availability-zone string   AWS Availibility-Zone to perform chaos on.
+      --config string              config file (default is $HOME/.chaosity.yaml)
+      --duration int               How long to perform chaos testing for in seconds (default 300)
+      --profile string             AWS credentials profile to use in order to connect (required)
+      --region string              AWS region to perform chaos in (required)
+      --subnets string             AWS Subnet IDs to perform chaos on (comma separated)
+      --vpc-id string              AWS VPC to perform chaos in (required)
 ```
 Example:
 ```

@@ -45,13 +45,6 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.chaosity.yaml)")
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
-	rootCmd.PersistentFlags().StringP("author", "a", "Michael Straughan", "author name for copyright attribution")
-	viper.BindPFlag("author", rootCmd.PersistentFlags().Lookup("author"))
-	viper.SetDefault("author", "Michael Straughan <straughan.michael@gmail.com")
 }
 
 // initConfig reads in config file and ENV variables if set.

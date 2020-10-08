@@ -11,14 +11,13 @@ Usage:
   chaosity aws instances [flags]
 
 Flags:
-  -d, --deny     Apply deny security group to instances
-  -h, --help     help for instances
-  -r, --reboot   Reboot selected instances from subnets or availability-zone.
+  -d, --deny       Apply deny security group to instances.
+  -h, --help       help for instances
+  -r, --reboot     Reboot selected instances from subnets or availability-zone.
+  -s, --shutdown   Force stop selected instances from subnets or availability-zone.
 
 Global Flags:
-  -a, --author string              author name for copyright attribution (default "Michael Straughan")
       --availability-zone string   AWS Availibility-Zone to perform chaos on.
-      --config string              config file (default is $HOME/.chaosity.yaml)
       --duration int               How long to perform chaos testing for in seconds (default 300)
       --profile string             AWS credentials profile to use in order to connect (required)
       --region string              AWS region to perform chaos in (required)

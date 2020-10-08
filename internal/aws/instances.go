@@ -117,6 +117,11 @@ func RevertChaosSecurityGroupOnInstances(svc *ec2.EC2, instances []*ec2.Instance
 // RebootInstances reboots all instances given in an ec2.Instance list (instances).
 // Returns an error
 func RebootInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
+	// make sure we get instances otherwise RebootInstances() complains
+	if len(instances) == 0 {
+		fmt.Println("No instances passed to reboot.")
+		return nil
+	}
 	var iList []*string
 	// cycle through given ec2.Instance list gathering their InstanceID into a list of pointers []*string
 	for _, i := range instances {
@@ -149,6 +154,11 @@ func RebootInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
 // Accepts a pointer to an EC2 service and a list of EC2 instances.
 // Returns an error
 func ForceShutdownInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
+	// make sure we get instances otherwise StopInstances() complains
+	if len(instances) == 0 {
+		fmt.Println("No instances passed to shutdown.")
+		return nil
+	}
 	var iList []*string
 	t := true
 	// cycle through given ec2.Instance list gathering their InstanceID into a list of pointers []*string

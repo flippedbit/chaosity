@@ -27,7 +27,7 @@ func GetInstancesBySubnet(svc *ec2.EC2, s *string) ([]*ec2.Instance, error) {
 				},
 				{
 					Name: aws.String("instance-state-name"),
-					Values: []string{
+					Values: []*string{
 						aws.String("running"),
 					},
 				},
@@ -142,5 +142,39 @@ func RebootInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
 			return err
 		}
 	}
+	return nil
+}
+
+// ForceShutdownInstances will issue a StopInstances with the force flag call to the AWS API.
+// Accepts a pointer to an EC2 service and a list of EC2 instances.
+// Returns an error
+func ForceShutdownInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
+	var iList []*string
+	t := true
+	// cycle through given ec2.Instance list gathering their InstanceID into a list of pointers []*string
+	for _, i := range instances {
+		fmt.Println("Force shutting down instance ", *i.InstanceId)
+		iList = append(iList, i.InstanceId)
+	}
+
+	input := &ec2.StopInstancesInput{
+		Force:       &t,
+		InstanceIds: iList,
+	}
+
+	_, err := svc.StopInstances(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			default:
+				fmt.Println(aerr.Error())
+				return aerr
+			}
+		} else {
+			fmt.Println(err.Error())
+			return err
+		}
+	}
+
 	return nil
 }

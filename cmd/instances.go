@@ -29,6 +29,7 @@ import (
 
 var rebootFlag bool
 var denyFlag bool
+var shutdownFlag bool
 
 // instancesCmd represents the instances command
 var instancesCmd = &cobra.Command{
@@ -72,6 +73,9 @@ group is deleted.`,
 		if rebootFlag {
 			//doSomething = true
 			internalAWS.RebootInstances(svc, instances)
+		} else if shutdownFlag {
+			//doSomething = true
+			internalAWS.ForceShutdownInstances(svc, instances)
 		}
 		if doSomething {
 			fmt.Println("Chaos! Waiting for ", options.duration, " seconds...")
@@ -103,7 +107,8 @@ func init() {
 	// is called directly, e.g.:
 	// instancesCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	instancesCmd.Flags().BoolVarP(&rebootFlag, "reboot", "r", false, "Reboot selected instances from subnets or availability-zone.")
-	instancesCmd.Flags().BoolVarP(&denyFlag, "deny", "d", false, "Apply deny security group to instances")
+	instancesCmd.Flags().BoolVarP(&denyFlag, "deny", "d", false, "Apply deny security group to instances.")
+	instancesCmd.Flags().BoolVarP(&shutdownFlag, "shutdown", "s", false, "Force stop selected instances from subnets or availability-zone.")
 	instancesCmd.MarkFlagRequired("profile")
 	instancesCmd.MarkFlagRequired("vpc-id")
 	instancesCmd.MarkFlagRequired("region")

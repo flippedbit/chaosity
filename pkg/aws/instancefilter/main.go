@@ -28,7 +28,6 @@ func (f *Filter) ByRunning() *Filter {
 // BySubnet will add a filter to the struct for searching within a given
 // subnet. Multiple subnets would be given comma separated.
 func (f *Filter) BySubnet(s []string) *Filter {
-	//ss := strings.Split(s, ",")
 	f.f = append(f.f, &ec2.Filter{
 		Name:   aws.String("subnet-id"),
 		Values: aws.StringSlice(s),
@@ -39,22 +38,20 @@ func (f *Filter) BySubnet(s []string) *Filter {
 // ByAvailabilityZone will add a filter to the struct for searching
 // within a given availability-zone. Multiple availability-zones would
 // be comma separated.
-func (f *Filter) ByAvailabilityZone(s string) *Filter {
-	ss := strings.Split(s, ",")
+func (f *Filter) ByAvailabilityZone(s []string) *Filter {
 	f.f = append(f.f, &ec2.Filter{
 		Name:   aws.String("availability-zone"),
-		Values: aws.StringSlice(ss),
+		Values: aws.StringSlice(s),
 	})
 	return f
 }
 
 // ByInstance will add a filter to the struct for searching
 // by instance-id.Multiple instance-id's would be comma separated.
-func (f *Filter) ByInstance(s string) *Filter {
-	ss := strings.Split(s, ",")
+func (f *Filter) ByInstance(s []string) *Filter {
 	f.f = append(f.f, &ec2.Filter{
 		Name:   aws.String("instance-id"),
-		Values: aws.StringSlice(ss),
+		Values: aws.StringSlice(s),
 	})
 	return f
 }

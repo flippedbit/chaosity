@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -18,6 +17,12 @@ func GetInstances(svc *ec2.EC2, o options.AwsOptions) ([]*ec2.Instance, error) {
 
 	if s := o.GetSubnets(); len(s) > 0 {
 		f = f.BySubnet(s)
+	}
+	if a := o.GetAvailabilityZones(); len(a) > 0 {
+		f = f.ByAvailabilityZone(a)
+	}
+	if i := o.GetInstances(); len(i) > 0 {
+		f = f.ByInstance(i)
 	}
 
 	input := &ec2.DescribeInstancesInput{
@@ -42,52 +47,6 @@ func GetInstances(svc *ec2.EC2, o options.AwsOptions) ([]*ec2.Instance, error) {
 		}
 	}
 
-	return instancesList, nil
-}
-
-// GetInstancesBySubnet gathers all Instance objects from a list of subnets provided
-// it will separate out multiple subnets with a comma (,) delimiter.
-// Returns a list of ec2.Instances and an error
-func GetInstancesBySubnet(svc *ec2.EC2, s *string) ([]*ec2.Instance, error) {
-	var instancesList []*ec2.Instance
-	subnets := strings.Split(*s, ",")
-	// cycle through given subnet IDs and gather instances from all the subnets
-	for _, subnet := range subnets {
-		input := &ec2.DescribeInstancesInput{
-			Filters: []*ec2.Filter{
-				{
-					Name: aws.String("subnet-id"),
-					Values: []*string{
-						aws.String(subnet),
-					},
-				},
-				{
-					Name: aws.String("instance-state-name"),
-					Values: []*string{
-						aws.String("running"),
-					},
-				},
-			},
-		}
-		// AWS describe on all instances with AWS error handling
-		instancesOutput, err := svc.DescribeInstances(input)
-		if err != nil {
-			if aerr, ok := err.(awserr.Error); ok {
-				switch aerr.Code() {
-				default:
-					return instancesList, fmt.Errorf(aerr.Error())
-				}
-			} else {
-				return instancesList, fmt.Errorf(err.Error())
-			}
-		}
-		// cycle through instances and gather instances in order to return a list of ec2.Instance
-		for _, reservation := range instancesOutput.Reservations {
-			for _, instance := range reservation.Instances {
-				instancesList = append(instancesList, instance)
-			}
-		}
-	}
 	return instancesList, nil
 }
 

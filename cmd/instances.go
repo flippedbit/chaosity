@@ -123,6 +123,7 @@ func init() {
 	instancesCmd.Flags().BoolVarP(&rebootFlag, "reboot", "r", false, "Reboot selected instances from subnets or availability-zone.")
 	instancesCmd.Flags().BoolVarP(&denyFlag, "deny", "d", false, "Apply deny security group to instances.")
 	instancesCmd.Flags().BoolVarP(&shutdownFlag, "shutdown", "s", false, "Force stop selected instances from subnets or availability-zone.")
+	instancesCmd.Flags().StringVar(&o.Instances, "instances", "", "Individual AWS Instance IDs to perform chaos on, comma separated.")
 	instancesCmd.MarkFlagRequired("profile")
 	instancesCmd.MarkFlagRequired("vpc-id")
 	instancesCmd.MarkFlagRequired("region")

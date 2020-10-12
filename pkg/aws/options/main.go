@@ -10,6 +10,7 @@ type AwsOptions struct {
 	Az        string
 	Duration  int
 	Instances string
+	Tags      string
 }
 
 func (a *AwsOptions) GetSubnets() []string {
@@ -29,6 +30,13 @@ func (a *AwsOptions) GetAvailabilityZones() []string {
 func (a *AwsOptions) GetInstances() []string {
 	if a.Instances != "" {
 		return strings.Split(a.Instances, ",")
+	}
+	return []string{}
+}
+
+func (a *AwsOptions) GetTags() []string {
+	if a.Tags != "" {
+		return strings.Split(a.Tags, ",")
 	}
 	return []string{}
 }

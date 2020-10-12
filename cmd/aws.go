@@ -72,6 +72,7 @@ func init() {
 	awsCmd.PersistentFlags().StringVar(&option.Profile, "profile", "", "AWS credentials profile to use in order to connect (required)")
 	awsCmd.PersistentFlags().StringVar(&option.Subnets, "subnets", "", "AWS Subnet IDs to perform chaos on (comma separated)")
 	awsCmd.PersistentFlags().StringVar(&option.Az, "availability-zone", "", "AWS Availibility-Zone to perform chaos on.")
+	awsCmd.PersistentFlags().StringVar(&option.Tags, "tags", "", "Tags applied to resource to match on. Format: key1=value1,key2=value2")
 	awsCmd.PersistentFlags().IntVar(&option.Duration, "duration", 300, "How long to perform chaos testing for in seconds")
 
 	awsCmd.MarkFlagRequired("profile")

@@ -60,9 +60,8 @@ func (f *Filter) ByInstance(s []string) *Filter {
 // Multiple tags are passed comma separated, each
 // tag is represented key=value.
 // example: team=devops
-func (f *Filter) ByTag(s string) *Filter {
-	ss := strings.Split(s, ",")
-	for _, t := range ss {
+func (f *Filter) ByTag(s []string) *Filter {
+	for _, t := range s {
 		tag := strings.Split(t, "=")
 		tKey := fmt.Sprintf("tag:%s", tag[0])
 		f.f = append(f.f, &ec2.Filter{

@@ -24,6 +24,9 @@ func GetInstances(svc *ec2.EC2, o options.AwsOptions) ([]*ec2.Instance, error) {
 	if i := o.GetInstances(); len(i) > 0 {
 		f = f.ByInstance(i)
 	}
+	if t := o.GetTags(); len(t) > 0 {
+		f = f.ByTag(t)
+	}
 
 	input := &ec2.DescribeInstancesInput{
 		Filters: f.Build(),

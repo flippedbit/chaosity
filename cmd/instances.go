@@ -42,24 +42,26 @@ and they will be separated out. After the duration period, provided by the --dur
 all previous security groups are re-applied to each instance. Finally, the empty secuirty
 group is deleted.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		doSomething := false
 		sess := session.Must(
 			session.NewSession(&aws.Config{
-				Region:      aws.String(options.region),
-				Credentials: credentials.NewSharedCredentials("", options.profile),
+				Region:      aws.String(o.Region),
+				Credentials: credentials.NewSharedCredentials("", o.Profile),
 			}),
 		)
 		svc := ec2.New(sess)
 
 		var instances []*ec2.Instance
 		var denySG string
+		doSomething := false
 
-		if options.subnets != "" {
-			instances, _ = internalAWS.GetInstancesBySubnet(svc, &options.subnets)
+		instances, err := internalAWS.GetInstances(svc, o)
+		if err != nil {
+			fmt.Println(err)
+			return
 		}
+		fmt.Println(&instances)
 		if denyFlag {
-			doSomething = true
-			denySG, err := internalAWS.GenerateDenySecurityGroup(svc, &options.vpcID)
+			denySG, err := internalAWS.GenerateDenySecurityGroup(svc, &o.VpcID)
 			if err != nil {
 				fmt.Println(err)
 				return
@@ -69,20 +71,25 @@ group is deleted.`,
 				fmt.Println(err)
 				return
 			}
+			doSomething = true
 		}
 		if rebootFlag {
-			//doSomething = true
 			internalAWS.RebootInstances(svc, instances)
 		} else if shutdownFlag {
-			//doSomething = true
-			internalAWS.ForceShutdownInstances(svc, instances)
+			if err := internalAWS.ForceShutdownInstances(svc, instances); err != nil {
+				fmt.Println(err)
+				return
+			}
+			doSomething = true
 		}
+		// make sure we need to actually wait for the duration otherwise continue.
 		if doSomething {
-			fmt.Println("Chaos! Waiting for ", options.duration, " seconds...")
-			time.Sleep(time.Duration(options.duration) * time.Second)
+			fmt.Println("Chaos! Waiting for ", o.Duration, " seconds...")
+			time.Sleep(time.Duration(o.Duration) * time.Second)
 		} else {
 			fmt.Println("Chaos the chaos! Nothing to do so not going to wait...")
 		}
+		// make sure to remove the deny security group after the duratoin so traffic returns to normal.
 		if denyFlag {
 			if err := internalAWS.RevertChaosSecurityGroupOnInstances(svc, instances); err != nil {
 				fmt.Println(err)
@@ -90,6 +97,13 @@ group is deleted.`,
 			}
 			fmt.Println("Deleting SecurityGroup ", denySG)
 			internalAWS.DeleteDenySecurityGroup(svc, denySG)
+		}
+		// make sure to start the instances back up after the duration has passed.
+		if shutdownFlag {
+			if err := internalAWS.StartInstances(svc, instances); err != nil {
+				fmt.Println(err)
+				return
+			}
 		}
 	},
 }

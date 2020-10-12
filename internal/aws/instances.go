@@ -7,7 +7,43 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/flippedbit/chaosity/pkg/aws/instancefilter"
+	"github.com/flippedbit/chaosity/pkg/aws/options"
 )
+
+func GetInstances(svc *ec2.EC2, o options.AwsOptions) ([]*ec2.Instance, error) {
+	var instancesList []*ec2.Instance
+	f := &instancefilter.Filter{}
+	f = f.ByRunning()
+
+	if s := o.GetSubnets(); len(s) > 0 {
+		f = f.BySubnet(s)
+	}
+
+	input := &ec2.DescribeInstancesInput{
+		Filters: f.Build(),
+	}
+	// AWS describe on all instances with AWS error handling
+	instancesOutput, err := svc.DescribeInstances(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			default:
+				return instancesList, fmt.Errorf(aerr.Error())
+			}
+		} else {
+			return instancesList, fmt.Errorf(err.Error())
+		}
+	}
+	// cycle through instances and gather instances in order to return a list of ec2.Instance
+	for _, reservation := range instancesOutput.Reservations {
+		for _, instance := range reservation.Instances {
+			instancesList = append(instancesList, instance)
+		}
+	}
+
+	return instancesList, nil
+}
 
 // GetInstancesBySubnet gathers all Instance objects from a list of subnets provided
 // it will separate out multiple subnets with a comma (,) delimiter.
@@ -186,5 +222,38 @@ func ForceShutdownInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
 		}
 	}
 
+	return nil
+}
+
+// StartInstances will attempt to start the AWS instances passed in the variable list "instances".
+func StartInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
+	// make sure we get instances otherwise StartInstances() complains
+	if len(instances) == 0 {
+		fmt.Println("No instances passed to start.")
+		return nil
+	}
+	var iList []*string
+	// cycle through given ec2.Instance list gathering their InstanceID into a list of pointers []*string
+	for _, i := range instances {
+		fmt.Println("Starting instance ", *i.InstanceId)
+		iList = append(iList, i.InstanceId)
+	}
+
+	input := &ec2.StartInstancesInput{
+		InstanceIds: iList,
+	}
+	_, err := svc.StartInstances(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			default:
+				fmt.Println(aerr.Error())
+				return aerr
+			}
+		} else {
+			fmt.Println(err.Error())
+			return err
+		}
+	}
 	return nil
 }

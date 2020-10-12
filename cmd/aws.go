@@ -22,19 +22,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/flippedbit/chaosity/pkg/aws/options"
 	"github.com/spf13/cobra"
 )
 
-type awsOptions struct {
-	region   string
-	vpcID    string
-	profile  string
-	subnets  string
-	az       string
-	duration int
-}
-
-var options awsOptions
+var o options.AwsOptions
 
 // awsCmd represents the aws command
 var awsCmd = &cobra.Command{
@@ -44,16 +36,16 @@ var awsCmd = &cobra.Command{
 	You are required to provide --profile --vpc-id and --region parameters.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("aws called")
-		fmt.Println(&options)
+		fmt.Println(&o)
 		sess := session.Must(
 			session.NewSession(&aws.Config{
-				Region:      aws.String(options.region),
-				Credentials: credentials.NewSharedCredentials("", options.profile),
+				Region:      aws.String(o.Region),
+				Credentials: credentials.NewSharedCredentials("", o.Profile),
 			}),
 		)
 		svc := ec2.New(sess)
-		if *svc.Config.Region == options.region {
-			fmt.Println("Able to connect to AWS EC2 - profile: ", options.profile, "\tregion: ", options.region)
+		if *svc.Config.Region == o.Region {
+			fmt.Println("Able to connect to AWS EC2 - profile: ", o.Profile, "\tregion: ", o.Region)
 		} else {
 			fmt.Println("Did not get proper response back from AWS")
 		}
@@ -62,6 +54,8 @@ var awsCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(awsCmd)
+
+	option := &o
 
 	// Here you will define your flags and configuration settings.
 
@@ -73,12 +67,12 @@ func init() {
 	// is called directly, e.g.:
 	// awsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	awsCmd.PersistentFlags().StringVar(&options.region, "region", "", "AWS region to perform chaos in (required)")
-	awsCmd.PersistentFlags().StringVar(&options.vpcID, "vpc-id", "", "AWS VPC to perform chaos in (required)")
-	awsCmd.PersistentFlags().StringVar(&options.profile, "profile", "", "AWS credentials profile to use in order to connect (required)")
-	awsCmd.PersistentFlags().StringVar(&options.subnets, "subnets", "", "AWS Subnet IDs to perform chaos on (comma separated)")
-	awsCmd.PersistentFlags().StringVar(&options.az, "availability-zone", "", "AWS Availibility-Zone to perform chaos on.")
-	awsCmd.PersistentFlags().IntVar(&options.duration, "duration", 300, "How long to perform chaos testing for in seconds")
+	awsCmd.PersistentFlags().StringVar(&option.Region, "region", "", "AWS region to perform chaos in (required)")
+	awsCmd.PersistentFlags().StringVar(&option.VpcID, "vpc-id", "", "AWS VPC to perform chaos in (required)")
+	awsCmd.PersistentFlags().StringVar(&option.Profile, "profile", "", "AWS credentials profile to use in order to connect (required)")
+	awsCmd.PersistentFlags().StringVar(&option.Subnets, "subnets", "", "AWS Subnet IDs to perform chaos on (comma separated)")
+	awsCmd.PersistentFlags().StringVar(&option.Az, "availability-zone", "", "AWS Availibility-Zone to perform chaos on.")
+	awsCmd.PersistentFlags().IntVar(&option.Duration, "duration", 300, "How long to perform chaos testing for in seconds")
 
 	awsCmd.MarkFlagRequired("profile")
 	awsCmd.MarkFlagRequired("vpc-id")

@@ -59,7 +59,7 @@ group is deleted.`,
 			fmt.Println(err)
 			return
 		}
-		fmt.Println(&instances)
+		//fmt.Println(&instances)
 		if denyFlag {
 			denySG, err := internalAWS.GenerateDenySecurityGroup(svc, &o.VpcID)
 			if err != nil {

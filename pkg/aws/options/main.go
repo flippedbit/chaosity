@@ -13,13 +13,22 @@ type AwsOptions struct {
 }
 
 func (a *AwsOptions) GetSubnets() []string {
-	return strings.Split(a.Subnets, ",")
+	if a.Subnets != "" {
+		return strings.Split(a.Subnets, ",")
+	}
+	return []string{}
 }
 
 func (a *AwsOptions) GetAvailabilityZones() []string {
-	return strings.Split(a.Az, ",")
+	if a.Az != "" {
+		return strings.Split(a.Az, ",")
+	}
+	return []string{}
 }
 
 func (a *AwsOptions) GetInstances() []string {
-	return strings.Split(a.Instances, ",")
+	if a.Instances != "" {
+		return strings.Split(a.Instances, ",")
+	}
+	return []string{}
 }

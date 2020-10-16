@@ -16,17 +16,15 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
+	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-
-	// be sure to flip this back
+	"github.com/aws/aws-sdk-go/service/ssm"
+	internalAWS "github.com/flippedbit/chaosity/internal/aws"
 	"github.com/spf13/cobra"
-	internalAWS "github.com/tall3n/chaosity/internal/aws"
 )
 
 var rebootFlag bool
@@ -45,16 +43,16 @@ and they will be separated out. After the duration period, provided by the --dur
 all previous security groups are re-applied to each instance. Finally, the empty secuirty
 group is deleted.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		sess := session.Must(
-			session.NewSession(&aws.Config{
-				Region:      aws.String(o.Region),
-				Credentials: credentials.NewSharedCredentials("", o.Profile),
-			}),
-		)
+		//add support for assume roles //This is known to work with non assumption of profiles as well
+		sess := session.Must(session.NewSessionWithOptions(session.Options{
+			Profile: o.Profile,
+			Config: aws.Config{
+				Region: aws.String(o.Region),
+			},
+			SharedConfigState: session.SharedConfigEnable,
+		}))
 		svc := ec2.New(sess)
-		if networkStop {
-			ssmSvc := ssm.New(sess)
-		}
+		ssmSvc := ssm.New(sess)
 
 		var instances []*ec2.Instance
 		var denySG string
@@ -62,55 +60,73 @@ group is deleted.`,
 
 		instances, err := internalAWS.GetInstances(svc, o)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return
 		}
-		//fmt.Println(&instances)
+		//log.Println(&instances)
 		if denyFlag {
 			denySG, err := internalAWS.GenerateDenySecurityGroup(svc, &o.VpcID)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				return
 			}
-			fmt.Println("Created SecurityGroup ", denySG)
+			log.Println("Created SecurityGroup ", denySG)
 			if err := internalAWS.ApplyChaosSecurityGroupToInstances(svc, instances, denySG); err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				return
 			}
 			doSomething = true
 		}
 		if networkStop {
-			ssm.SendCommandToSSM(ssmSvc, instances, "stop")
+			internalAWS.SendCommandToSSM(ssmSvc, instances, "stop")
+			doSomething = true
 		}
 		if rebootFlag {
 			internalAWS.RebootInstances(svc, instances)
 		} else if shutdownFlag {
 			if err := internalAWS.ForceShutdownInstances(svc, instances); err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				return
 			}
 			doSomething = true
 		}
 		// make sure we need to actually wait for the duration otherwise continue.
 		if doSomething {
-			fmt.Println("Chaos! Waiting for ", o.Duration, " seconds...")
+			log.Println("Chaos! Waiting for ", o.Duration, " seconds...")
 			time.Sleep(time.Duration(o.Duration) * time.Second)
 		} else {
-			fmt.Println("Chaos the chaos! Nothing to do so not going to wait...")
+			log.Println("Chaos the chaos! Nothing to do so not going to wait...")
 		}
 		// make sure to remove the deny security group after the duratoin so traffic returns to normal.
 		if denyFlag {
 			if err := internalAWS.RevertChaosSecurityGroupOnInstances(svc, instances); err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				return
 			}
-			fmt.Println("Deleting SecurityGroup ", denySG)
+			log.Println("Deleting SecurityGroup ", denySG)
 			internalAWS.DeleteDenySecurityGroup(svc, denySG)
 		}
 		// make sure to start the instances back up after the duration has passed.
 		if shutdownFlag {
 			if err := internalAWS.StartInstances(svc, instances); err != nil {
-				fmt.Println(err)
+				log.Println(err)
+				return
+			}
+		}
+		if networkStop {
+			// we need a final stop/start to recover network connectivity
+			if err := internalAWS.ForceShutdownInstances(svc, instances); err != nil {
+				log.Println(err)
+				return
+			}
+			//wait for instances to stop
+			// #TODO: needs to be more elegant loop through checking status
+			log.Println("Waiting 120 seconds for instances to stop.")
+			time.Sleep(time.Second * 120)
+			log.Println("Starting Instances back up.")
+
+			if err := internalAWS.StartInstances(svc, instances); err != nil {
+				log.Println(err)
 				return
 			}
 		}
@@ -133,7 +149,7 @@ func init() {
 	instancesCmd.Flags().BoolVarP(&denyFlag, "deny", "d", false, "Apply deny security group to instances.")
 	instancesCmd.Flags().BoolVarP(&shutdownFlag, "shutdown", "s", false, "Force stop selected instances from subnets or availability-zone.")
 	instancesCmd.Flags().StringVar(&o.Instances, "instances", "", "Individual AWS Instance IDs to perform chaos on, comma separated.")
-	instancesCmd.Flags().StringVar(&networkStop, "stopnetwork", false, "Stop targeted instances network capabilities on box")
+	instancesCmd.Flags().BoolVarP(&networkStop, "stopnetwork", "n", false, "Stops OS level network connections for selected instance")
 	instancesCmd.MarkFlagRequired("profile")
 	instancesCmd.MarkFlagRequired("vpc-id")
 	instancesCmd.MarkFlagRequired("region")

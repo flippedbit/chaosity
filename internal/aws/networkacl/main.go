@@ -61,3 +61,58 @@ func DeleteDenyNacl(svc *ec2.EC2, n string) error {
 	fmt.Println("Removing NACL: ", n)
 	return nil
 }
+
+func GetNetworkAclAssociation(svc *ec2.EC2, s string) ([]ec2.NetworkAclAssociation, error) {
+	var nacls []ec2.NetworkAclAssociation
+	input := &ec2.DescribeNetworkAclsInput{
+		Filters: []*ec2.Filter{
+			{
+				Name: aws.String("association.subnet-id"),
+				Values: []*string{
+					aws.String(s),
+				},
+			},
+		},
+	}
+	result, err := svc.DescribeNetworkAcls(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			default:
+				return nacls, aerr
+			}
+		} else {
+			return nacls, err
+		}
+	}
+	for _, n := range result.NetworkAcls {
+		for _, a := range n.Associations {
+			if *a.SubnetId == s {
+				nacls = append(nacls, *a)
+			}
+		}
+	}
+	//fmt.Println(nacls)
+	return nacls, nil
+}
+
+func ReplaceAssociation(svc *ec2.EC2, a string, n string) (string, error) {
+	input := &ec2.ReplaceNetworkAclAssociationInput{
+		AssociationId: aws.String(a),
+		NetworkAclId:  aws.String(n),
+	}
+	result, err := svc.ReplaceNetworkAclAssociation(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			default:
+				return "", aerr
+			}
+		} else {
+			return "", err
+		}
+	}
+	new := *result.NewAssociationId
+	fmt.Println("Replaced NetworkACL on association ", a, " with ", n, ". New associationID ", new)
+	return new, nil
+}

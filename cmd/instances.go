@@ -23,11 +23,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	internalAWS "github.com/flippedbit/chaosity/internal/aws"
-
 	// be sure to flip this back
+	internalAWS "github.com/tall3n/chaosity/internal/aws"
+
 	"github.com/spf13/cobra"
-	ssm "github.com/tall3n/chaosity/internal/ssm"
 )
 
 var rebootFlag bool

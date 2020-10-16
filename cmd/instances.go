@@ -23,10 +23,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	// be sure to flip this back
-	internalAWS "github.com/tall3n/chaosity/internal/aws"
 
+	// be sure to flip this back
 	"github.com/spf13/cobra"
+	internalAWS "github.com/tall3n/chaosity/internal/aws"
 )
 
 var rebootFlag bool
@@ -52,7 +52,7 @@ group is deleted.`,
 			}),
 		)
 		svc := ec2.New(sess)
-		if networkStop{
+		if networkStop {
 			ssmSvc := ssm.New(sess)
 		}
 
@@ -80,7 +80,7 @@ group is deleted.`,
 			doSomething = true
 		}
 		if networkStop {
-			ssm.
+			ssm.SendCommandToSSM(ssmSvc, instances, "stop")
 		}
 		if rebootFlag {
 			internalAWS.RebootInstances(svc, instances)

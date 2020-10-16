@@ -18,6 +18,11 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/flippedbit/chaosity/internal/aws/networkacl"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +35,21 @@ var subnetsCmd = &cobra.Command{
 	block any traffic that passes within the subnet itself. That empty NACL is then applied
 	to all subnets that are passed using the --subnets parameter comma delimited.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		sess := session.Must(
+			session.NewSession(&aws.Config{
+				Region:      aws.String(o.Region),
+				Credentials: credentials.NewSharedCredentials("", o.Profile),
+			}),
+		)
+		svc := ec2.New(sess)
+
 		fmt.Println("subnets called")
+		nacl, err := networkacl.CreateDenyNacl(svc, o.VpcID)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		networkacl.DeleteDenyNacl(svc, nacl)
 	},
 }
 

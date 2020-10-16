@@ -18,6 +18,7 @@ func GenerateDenySecurityGroup(svc *ec2.EC2, vpc *string) (string, error) {
 		VpcId:       vpc,
 	}
 	// create the security group and check for AWS errors
+	// #TODO: if security group exists use existing
 	groupResult, err := svc.CreateSecurityGroup(groupInput)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
@@ -28,7 +29,8 @@ func GenerateDenySecurityGroup(svc *ec2.EC2, vpc *string) (string, error) {
 		} else {
 			return "", err
 		}
-		return "", err
+		//unreachable
+		// return "", err
 	}
 	sgID := *groupResult.GroupId
 

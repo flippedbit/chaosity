@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -58,7 +59,7 @@ func GetInstances(svc *ec2.EC2, o options.AwsOptions) ([]*ec2.Instance, error) {
 func ApplyChaosSecurityGroupToInstances(svc *ec2.EC2, instances []*ec2.Instance, sg string) error {
 	// cycle through given ec2.Instance list
 	for _, i := range instances {
-		fmt.Println("Applying SecurityGroups ", sg, " to instance ", *i.InstanceId)
+		log.Println("Applying SecurityGroups ", sg, " to instance ", *i.InstanceId)
 		// modify every instance with the new segurity group ID for the chaos deny sg that was created and passed
 		input := &ec2.ModifyInstanceAttributeInput{
 			InstanceId: aws.String(*i.InstanceId),
@@ -89,7 +90,7 @@ func RevertChaosSecurityGroupOnInstances(svc *ec2.EC2, instances []*ec2.Instance
 		var originalSecurityGroups []*string
 		// cycle through grabbing all original security groups for each instance
 		for _, s := range i.SecurityGroups {
-			fmt.Println("Applying SecurityGroups ", *s.GroupId, " to instance ", *i.InstanceId)
+			log.Println("Applying SecurityGroups ", *s.GroupId, " to instance ", *i.InstanceId)
 			originalSecurityGroups = append(originalSecurityGroups, s.GroupId)
 		}
 		// create the new instance attribute object to be applied combining the instanceID and securitygroupID's
@@ -117,13 +118,13 @@ func RevertChaosSecurityGroupOnInstances(svc *ec2.EC2, instances []*ec2.Instance
 func RebootInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
 	// make sure we get instances otherwise RebootInstances() complains
 	if len(instances) == 0 {
-		fmt.Println("No instances passed to reboot.")
+		log.Println("No instances passed to reboot.")
 		return nil
 	}
 	var iList []*string
 	// cycle through given ec2.Instance list gathering their InstanceID into a list of pointers []*string
 	for _, i := range instances {
-		fmt.Println("Rebooting instance ", *i.InstanceId)
+		log.Println("Rebooting instance ", *i.InstanceId)
 		iList = append(iList, i.InstanceId)
 	}
 
@@ -137,11 +138,11 @@ func RebootInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			default:
-				fmt.Println(aerr)
+				log.Println(aerr)
 				return aerr
 			}
 		} else {
-			fmt.Println(err)
+			log.Println(err)
 			return err
 		}
 	}
@@ -154,14 +155,14 @@ func RebootInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
 func ForceShutdownInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
 	// make sure we get instances otherwise StopInstances() complains
 	if len(instances) == 0 {
-		fmt.Println("No instances passed to shutdown.")
+		log.Println("No instances passed to shutdown.")
 		return nil
 	}
 	var iList []*string
 	t := true
 	// cycle through given ec2.Instance list gathering their InstanceID into a list of pointers []*string
 	for _, i := range instances {
-		fmt.Println("Force shutting down instance ", *i.InstanceId)
+		log.Println("Force shutting down instance ", *i.InstanceId)
 		iList = append(iList, i.InstanceId)
 	}
 
@@ -175,11 +176,11 @@ func ForceShutdownInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			default:
-				fmt.Println(aerr.Error())
+				log.Println(aerr.Error())
 				return aerr
 			}
 		} else {
-			fmt.Println(err.Error())
+			log.Println(err.Error())
 			return err
 		}
 	}
@@ -191,13 +192,13 @@ func ForceShutdownInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
 func StartInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
 	// make sure we get instances otherwise StartInstances() complains
 	if len(instances) == 0 {
-		fmt.Println("No instances passed to start.")
+		log.Println("No instances passed to start.")
 		return nil
 	}
 	var iList []*string
 	// cycle through given ec2.Instance list gathering their InstanceID into a list of pointers []*string
 	for _, i := range instances {
-		fmt.Println("Starting instance ", *i.InstanceId)
+		log.Println("Starting instance ", *i.InstanceId)
 		iList = append(iList, i.InstanceId)
 	}
 
@@ -209,11 +210,11 @@ func StartInstances(svc *ec2.EC2, instances []*ec2.Instance) error {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			default:
-				fmt.Println(aerr.Error())
+				log.Println(aerr.Error())
 				return aerr
 			}
 		} else {
-			fmt.Println(err.Error())
+			log.Println(err.Error())
 			return err
 		}
 	}

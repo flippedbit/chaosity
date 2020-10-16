@@ -16,7 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -35,8 +35,8 @@ var awsCmd = &cobra.Command{
 	Long: `This module will only perform a simple AWS API connection to confirm that you are able to connect with the given credentials.
 	You are required to provide --profile --vpc-id and --region parameters.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("aws called")
-		fmt.Println(&o)
+		log.Println("aws called")
+		log.Println(&o)
 		sess := session.Must(
 			session.NewSession(&aws.Config{
 				Region:      aws.String(o.Region),
@@ -45,9 +45,9 @@ var awsCmd = &cobra.Command{
 		)
 		svc := ec2.New(sess)
 		if *svc.Config.Region == o.Region {
-			fmt.Println("Able to connect to AWS EC2 - profile: ", o.Profile, "\tregion: ", o.Region)
+			log.Println("Able to connect to AWS EC2 - profile: ", o.Profile, "\tregion: ", o.Region)
 		} else {
-			fmt.Println("Did not get proper response back from AWS")
+			log.Println("Did not get proper response back from AWS")
 		}
 	},
 }

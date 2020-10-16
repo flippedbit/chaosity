@@ -1,7 +1,7 @@
 package networkacl
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -38,7 +38,7 @@ func CreateDenyNacl(svc *ec2.EC2, vpc string) (string, error) {
 		}
 	}
 	n := *result.NetworkAcl.NetworkAclId
-	fmt.Println("Created NACL: ", n)
+	log.Println("Created NACL: ", n)
 	return n, nil
 }
 
@@ -58,7 +58,7 @@ func DeleteDenyNacl(svc *ec2.EC2, n string) error {
 			return err
 		}
 	}
-	fmt.Println("Removing NACL: ", n)
+	log.Println("Removing NACL: ", n)
 	return nil
 }
 
@@ -92,7 +92,7 @@ func GetNetworkAclAssociation(svc *ec2.EC2, s string) ([]ec2.NetworkAclAssociati
 			}
 		}
 	}
-	//fmt.Println(nacls)
+	//log.Println(nacls)
 	return nacls, nil
 }
 
@@ -113,6 +113,6 @@ func ReplaceAssociation(svc *ec2.EC2, a string, n string) (string, error) {
 		}
 	}
 	new := *result.NewAssociationId
-	fmt.Println("Replaced NetworkACL on association ", a, " with ", n, ". New associationID ", new)
+	log.Println("Replaced NetworkACL on association ", a, " with ", n, ". New associationID ", new)
 	return new, nil
 }

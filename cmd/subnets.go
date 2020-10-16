@@ -16,7 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
+	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -52,14 +52,14 @@ var subnetsCmd = &cobra.Command{
 
 		s, err := subnets.GetSubnets(svc, o)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return
 		}
 		for _, sub := range s {
-			fmt.Println("Found subnet: ", *sub.SubnetId)
+			log.Println("Found subnet: ", *sub.SubnetId)
 			assoc, err := networkacl.GetNetworkAclAssociation(svc, *sub.SubnetId)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				return
 			}
 			nAssoc = append(nAssoc, assoc[0])
@@ -69,12 +69,12 @@ var subnetsCmd = &cobra.Command{
 			doSomething = true
 			n, err = networkacl.CreateDenyNacl(svc, o.VpcID)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				return
 			}
 			for i, a := range nAssoc {
 				if new, err := networkacl.ReplaceAssociation(svc, *a.NetworkAclAssociationId, n); err != nil {
-					fmt.Println(err)
+					log.Println(err)
 				} else {
 					nAssoc[i].NetworkAclAssociationId = &new
 				}
@@ -82,20 +82,20 @@ var subnetsCmd = &cobra.Command{
 		}
 
 		if doSomething {
-			fmt.Println("Chaos! Waiting for ", o.Duration, " seconds...")
+			log.Println("Chaos! Waiting for ", o.Duration, " seconds...")
 			time.Sleep(time.Duration(o.Duration) * time.Second)
 		} else {
-			fmt.Println("Chaos the chaos! Nothing to do so not going to wait...")
+			log.Println("Chaos the chaos! Nothing to do so not going to wait...")
 		}
 
 		if denyFlag {
 			for _, a := range nAssoc {
 				if _, err := networkacl.ReplaceAssociation(svc, *a.NetworkAclAssociationId, *a.NetworkAclId); err != nil {
-					fmt.Println(err)
+					log.Println(err)
 				}
 			}
 			if err := networkacl.DeleteDenyNacl(svc, n); err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				return
 			}
 		}

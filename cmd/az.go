@@ -16,7 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -33,7 +33,7 @@ then applied to subnets previously gathered. After the duration period, given us
 the original NACLs are then re-applied to the subnets that were previously gathered
 and the empty NACL is deleted.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("az called")
+		log.Println("az called")
 	},
 }
 

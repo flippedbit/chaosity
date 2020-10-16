@@ -24,12 +24,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	internalAWS "github.com/flippedbit/chaosity/internal/aws"
+	ssm "github.com/flippedbit/tall3n/internal/ssm"
 	"github.com/spf13/cobra"
 )
 
 var rebootFlag bool
 var denyFlag bool
 var shutdownFlag bool
+var networkStop bool
 
 // instancesCmd represents the instances command
 var instancesCmd = &cobra.Command{
@@ -49,6 +51,9 @@ group is deleted.`,
 			}),
 		)
 		svc := ec2.New(sess)
+		if networkStop{
+			ssmSvc := ssm.New(sess)
+		}
 
 		var instances []*ec2.Instance
 		var denySG string
@@ -72,6 +77,9 @@ group is deleted.`,
 				return
 			}
 			doSomething = true
+		}
+		if networkStop {
+			ssm.
 		}
 		if rebootFlag {
 			internalAWS.RebootInstances(svc, instances)
@@ -124,6 +132,7 @@ func init() {
 	instancesCmd.Flags().BoolVarP(&denyFlag, "deny", "d", false, "Apply deny security group to instances.")
 	instancesCmd.Flags().BoolVarP(&shutdownFlag, "shutdown", "s", false, "Force stop selected instances from subnets or availability-zone.")
 	instancesCmd.Flags().StringVar(&o.Instances, "instances", "", "Individual AWS Instance IDs to perform chaos on, comma separated.")
+	instancesCmd.Flags().StringVar(&networkStop, "stopnetwork", false, "Stop targeted instances network capabilities on box")
 	instancesCmd.MarkFlagRequired("profile")
 	instancesCmd.MarkFlagRequired("vpc-id")
 	instancesCmd.MarkFlagRequired("region")

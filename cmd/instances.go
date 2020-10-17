@@ -61,7 +61,8 @@ group is deleted.`,
 		}
 		//fmt.Println(&instances)
 		if denyFlag {
-			denySG, err := internalAWS.GenerateDenySecurityGroup(svc, &o.VpcID)
+			var err error
+			denySG, err = internalAWS.GenerateDenySecurityGroup(svc, &o.VpcID)
 			if err != nil {
 				fmt.Println(err)
 				return
@@ -96,7 +97,10 @@ group is deleted.`,
 				return
 			}
 			fmt.Println("Deleting SecurityGroup ", denySG)
-			internalAWS.DeleteDenySecurityGroup(svc, denySG)
+			if err := internalAWS.DeleteDenySecurityGroup(svc, denySG); err != nil {
+				fmt.Println(err)
+			}
+
 		}
 		// make sure to start the instances back up after the duration has passed.
 		if shutdownFlag {

@@ -19,7 +19,6 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/flippedbit/chaosity/pkg/aws/options"
@@ -37,12 +36,14 @@ var awsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Println("aws called")
 		log.Println(&o)
-		sess := session.Must(
-			session.NewSession(&aws.Config{
-				Region:      aws.String(o.Region),
-				Credentials: credentials.NewSharedCredentials("", o.Profile),
-			}),
-		)
+		sess := session.Must(session.NewSessionWithOptions(session.Options{
+			Profile: updateOptions.Profile,
+			Config: aws.Config{
+				Region: aws.String(updateOptions.Region),
+			},
+			SharedConfigState: session.SharedConfigEnable,
+		}))
+
 		svc := ec2.New(sess)
 		if *svc.Config.Region == o.Region {
 			log.Println("Able to connect to AWS EC2 - profile: ", o.Profile, "\tregion: ", o.Region)

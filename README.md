@@ -16,7 +16,7 @@ Flags:
       --bucket string    Bucket to download update from(required)
   -h, --help             help for update
       --profile string   Profile used to download from S3 - Any standard profile will work (required)
-      --region string    Region specified defaults to us-east-1 (default "us-east-1")  chaosity update [flags]
+      --region string    Region specified defaults to us-east-1 (default "us-east-1")
 ```
 #### General
 ```

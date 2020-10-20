@@ -13,4 +13,4 @@ require (
 	github.com/tall3n/chaosity v0.0.0-20201016154739-e39428c61729 // indirect
 )
 
-replace github.com/flippedbit/chaosity => github.com/tall3n/chaosity v0.0.0-20201016053127-9260b8af7c37
+replace github.com/flippedbit/chaosity

@@ -20,13 +20,8 @@ type commandStruct struct {
 
 var c commandStruct
 
-// Checks instance to ensure it is online and rectrieve its OS type
+//Checks instance to ensure it is online and rectrieve its OS type
 func SendCommandToSSM(ssmClient *ssm.SSM, instances []*ec2.Instance, mode string) {
-	//Loop Through Instances
-	//Check Instance
-	//SendCommand
-	//Poll Command
-	//Return Result
 	c.ssmClient = ssmClient
 	for _, instance := range instances {
 		//error handle this
@@ -36,14 +31,11 @@ func SendCommandToSSM(ssmClient *ssm.SSM, instances []*ec2.Instance, mode string
 			log.Fatalln("Unable to determine information from SSM about the selected instance")
 		}
 		if mode == "stop" && c.os != "Windows" {
-			c.command = "echo 'I would have stopped'"
+			c.command = "sudo dhclient -r"
 		} else if mode == "stop" && c.os == "Windows" {
 			c.command = "ipconfig /release"
-		} else if mode == "start" && c.os == "Windows" {
-			c.command = "netsh interface show interface"
 		}
 		log.Printf("Got OS: %v for instance: %v", c.os, *instance.InstanceId)
-		log.Printf("Sending command: [%v] to instance: %v", c.command, *instance.InstanceId)
 		c.runCommand(*instance.InstanceId)
 		if mode != "stop" {
 			log.Printf("Polling command instanceId: %v", *instance.InstanceId)

@@ -8,6 +8,16 @@ in the future.
 ### Usage
 ```
 Usage:
+  chaosity update [flags]
+
+Flags:
+      --bucket string    Bucket to download update from(required)
+  -h, --help             help for update
+      --profile string   Profile used to download from S3 - Any standard profile will work (required)
+      --region string    Region specified defaults to us-east-1 (default "us-east-1")  chaosity update [flags]
+```
+```
+Usage:
   chaosity aws instances [flags]
 
 Flags:
@@ -16,6 +26,7 @@ Flags:
       --instances string   Individual AWS Instance IDs to perform chaos on, comma separated.
   -r, --reboot             Reboot selected instances from subnets or availability-zone.
   -s, --shutdown           Force stop selected instances from subnets or availability-zone.
+  -n, --stopnetwork        Stops network interface on target machines leaving applications in tact
 
 Global Flags:
       --availability-zone string   AWS Availibility-Zone to perform chaos on.

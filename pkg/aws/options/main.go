@@ -13,6 +13,12 @@ type AwsOptions struct {
 	Tags      string
 }
 
+type UpdateOptions struct {
+	UpdateBucket string
+	Profile      string
+	Region       string
+}
+
 func (a *AwsOptions) GetSubnets() []string {
 	if a.Subnets != "" {
 		return strings.Split(a.Subnets, ",")

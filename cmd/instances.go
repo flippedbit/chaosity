@@ -43,7 +43,7 @@ and they will be separated out. After the duration period, provided by the --dur
 all previous security groups are re-applied to each instance. Finally, the empty secuirty
 group is deleted.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		//add support for assume roles //This is known to work with non assumption of profiles as well
+		//This is known to work with non assumption of profiles as well
 		sess := session.Must(session.NewSessionWithOptions(session.Options{
 			Profile: o.Profile,
 			Config: aws.Config{
@@ -124,7 +124,6 @@ group is deleted.`,
 			log.Println("Waiting 120 seconds for instances to stop.")
 			time.Sleep(time.Second * 120)
 			log.Println("Starting Instances back up.")
-
 			if err := internalAWS.StartInstances(svc, instances); err != nil {
 				log.Println(err)
 				return
